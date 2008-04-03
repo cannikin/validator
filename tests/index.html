@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<title>Form Validation</title>
+	<style type="text/css">
+		body {
+			font-family: Verdana, sans-serif;
+			color: #333333;
+			}
+		
+		fieldset {
+			padding: 1em 2em;
+			border-style: dotted;
+			font-size: 80%;
+			margin: 1em;
+			}
+
+		legend {
+			font-size: 200%;
+			font-weight: bold;
+			color: #999999;
+			}
+
+		label {
+			display: block;
+			margin: 1em 0 0;
+			font-weight: bold;
+			}
+
+		input, select {
+			display: inline;
+			}
+			
+		input.error, select.error {
+			border: 2px solid #990000;
+			}
+
+		input.valid, select.valid {
+			border: 2px solid #009900;
+			}
+
+		.example {
+			color: #aaaaaa;
+			font-size: 90%;
+			clear: left;
+			}
+
+		.result {
+			margin: 0 0 0 15px;
+			display: inline;
+			}
+
+			.result img {
+				vertical-align: middle;
+				}
+
+		.result.error {
+			color: #990000;
+			}
+
+		.result.valid {
+			color: #009900;
+			}
+
+		div.example {
+			clear: left;
+			}
+	</style>
+
+	<script type="text/javascript" src="../../lib/prototype.js"></script>
+	<script type="text/javascript" src="../validator.js"></script>
+
+</head>
+<body>
+
+
+<form id="form1" action="/submit.html" method="post">
+	<fieldset>
+		<legend>Create Account</legend>
+		<label for="first_name" id="first_name_label">First Name</label>
+		<input type="text" name="first_name" id="first_name" value="" />
+		
+		<label for="last_name" id="last_name_label">Last Name</label>
+		<input type="text" name="last_name" id="last_name" value="" />
+		
+		<label for="address" id="address_label">Address</label>
+		<input type="text" name="address" id="address" value="" class="required" />
+
+		<label for="zip" id="zip_label">Zip</label>
+		<input type="text" name="zip" id="zip" value="" />
+		
+		<label for="email" id="email_label">Email Address</label>
+		<input type="text" name="email" id="email" value="" />
+		<div id="email_example" class="example">A valid email address</div>
+
+		<label for="phone" id="phone_label">Phone Number</label>
+		<input type="text" name="phone" id="phone" value="" />
+		<div id="phone_example" class="example">Your daytime phone number</div>
+
+		<label for="gender" id="gender_label">Gender</label>
+		<select id="gender" name="gender">
+			<option value="">Select...</option>
+			<option value=""></option>
+			<option value="male">Boy</option>
+			<option value="female">Girl</option>
+		</select>
+		<div id="gender_example" class="example"></div>
+	</fieldset>
+	
+	<input type="submit" value="Submit" id="commit" />
+	
+</form>
+
+<script type="text/javascript">
+	var v = new Validator('form1', { event:'blur', errorIcon:'images/cross.png', validIcon:'images/accept.png', validateOnLoad:true });
+	v.addField(	'first_name',
+				'notBlank',
+				{ error_message:'Please enter your first name',
+				  valid_message:'Good job!' });
+	v.addField(	'last_name',
+				'notBlank');
+	v.addField( 'zip',
+				'isNumeric' );
+	v.addField(	'email',
+				'isEmail');
+	v.addField(	'phone',
+				function(v) { return v.match(/\d{3}-\d{3}-\d{4}/) ? true : false },
+				{ error_message:'Please enter your phone number in the format 123-123-1234' }),
+	v.addField(	'gender',
+				'notBlank',
+				{ error_message:'Please select a gender',
+				  event:'change' });
+</script>
+
+</body>
+</html>
