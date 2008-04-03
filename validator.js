@@ -2,7 +2,6 @@
 
 	TODO: Option in initialize to set default error message
  	TODO: Option to validate entire form when the page loads
-	TODO:
 	
 */
 
@@ -70,11 +69,10 @@ Validator.prototype = {
 			this.addField(field, this.basicValidations['notBlank'].method, { error_message:this.basicValidations['notBlank'].error_message });
 		}.bind(this));
 		
-		/*
 		if(options.validateOnLoad) {
-			document.observe('load', this.validateForm.bindAsEventListener(this));
+			Event.observe(window, 'load', this.validateForm.bindAsEventListener(this));
 		}
-		*/
+
 	},
 	
 	// add a field to validate
@@ -112,7 +110,9 @@ Validator.prototype = {
 	// validate all the fields in the form
 	validateForm:function() {
 		this.reset();
-		this.fields.each(this.validateField(field));
+		this.fields.each(function(field) {
+			this.validateField(field);
+		}.bind(this));
 		return this.hasErrors() ? false : true;
 	},
 
