@@ -99,17 +99,18 @@ Validator.prototype = {
 							error_message:options.error_message,
 							valid_message:options.valid_message });
 
-		// if we're not validating on submit, then observe whichever other event type was specified
 		if(options.event) {
+			// if this field specified a custom event watch type, use it
 			obj.observe(options.event, this.validateField.bindAsEventListener(this));
 		} else if(this.whenToValidate != 'submit') {
+			// if we're not validating on submit, then observe whichever other event type was specified
 			obj.observe(this.whenToValidate, this.validateField.bindAsEventListener(this));
 		}
 	},
 	
 	// validate all the fields in the form
 	validateForm:function() {
-		this.reset();
+		this.resetForm();
 		this.fields.each(function(field) {
 			this.validateField(field);
 		}.bind(this));
@@ -154,10 +155,10 @@ Validator.prototype = {
 	},
 	
 	// reset the validator by removing all errors
-	reset:function() {
+	resetForm:function() {
 		this.errors = $A([]);
 		this.fields.each(function(validation) {
-			validation.obj.removeClassName(self.errorClass);
+			this.resetField(field);
 		}.bind(this));
 	},
 	
@@ -177,7 +178,7 @@ Validator.prototype = {
 		var output = '<h2>The form could not be submitted because of the following errors:</h2>';
 		output += '<ul>';
 		this.errors.each(function(error) {
-			output += '<li>' + error.message + '</li>';
+			output += '<li>' + error.error_message + '</li>';
 		});
 		output += '</ul>';
 		obj.update(output);
