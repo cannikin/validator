@@ -28,12 +28,12 @@ Validator.prototype = {
 	// name of the CSS class to give any inputs with errors
 	errorClass:'error',
 	
-	errorIcon:'/images/accept.png',
+	errorIcon:'/images/cross.png',
 
 	// name of the CSS class to give any inputs that are valid
 	validClass:'valid',
 	
-	validIcon:'/images/cross.png',
+	validIcon:'/images/accept.png',
 
 	// when to do validation (submit|blur)
 	whenToValidate:'submit',
@@ -41,11 +41,11 @@ Validator.prototype = {
 	// some default fields that you can get by just naming them in your addField() call
 	basicValidations:{
 		'notBlank':{	'method':function(v) { return v=='' ? false : true }, 
-						'error_message':'This field cannot be blank'},
+						'errorMessage':'This field cannot be blank'},
 		'isNumeric':{	'method':function(v) { return parseInt(v) == v ? true : false }, 
-						'error_message':'This field must be a number'},
-		'isEmail':{	'method':function(v) { return v.match(/^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i) ? true : false },
-						'error_message':'Please enter a valid email address (johndoe@example.com)'}
+						'errorMessage':'This field must be a number'},
+		'isEmail':{		'method':function(v) { return v.match(/^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i) ? true : false },
+						'errorMessage':'Please enter a valid email address (johndoe@example.com)'}
 	},
 	
 	// initialize the validator with the form that this validates for
@@ -66,7 +66,7 @@ Validator.prototype = {
 
 		// automatically add any fields with a class of 'required'
 		$$('input.required').each(function(field) {
-			this.addField(field, this.basicValidations['notBlank'].method, { error_message:this.basicValidations['notBlank'].error_message });
+			this.addField(field, this.basicValidations['notBlank'].method, { errorMessage:this.basicValidations['notBlank'].errorMessage });
 		}.bind(this));
 		
 		if(options.validateOnLoad) {
@@ -77,6 +77,8 @@ Validator.prototype = {
 	
 	// add a field to validate
 	addField:function(id,func,options) {
+		var obj = $(id);
+
 		// if there were no options passed in, create an empty object
 		options = options ? options : {};
 		// was this a string for one of the built-in validation routines?
@@ -84,26 +86,27 @@ Validator.prototype = {
 			var built_in_name = func;
 			func = this.basicValidations[built_in_name].method;
 			// if so, should we use the default error message?
-			if(!options.error_message) {
-				options.error_message = this.basicValidations[built_in_name].error_message;
+			if(!options.errorMessage) {
+				options.errorMessage = this.basicValidations[built_in_name].errorMessage;
 			}
 		}
-		// if no error_message was passed in, set the default one
-		options.error_message = options.error_message ? options.error_message : this.defaultErrorMessage;
-		// if no valid_message was passed in, set the default one
-		options.valid_message = options.valid_message ? options.valid_message : this.defaultValidMessage;
-		// add the field, it's validation method and error message to the fields array
-		var obj = $(id);
+		options.errorMessage = options.errorMessage ? options.errorMessage : this.defaultErrorMessage;		// if no errorMessage was passed in, set the default one
+		options.validMessage = options.validMessage ? options.validMessage : this.defaultValidMessage;		// if no validMessage was passed in, set the default one
+		options.appendResultTo = options.appendResultTo ? $(options.appendResultTo) : obj;						// should we append the result to any field other than the default?
+
 		this.fields.push({	obj:obj,
 							method:func,
-							error_message:options.error_message,
-							valid_message:options.valid_message });
+							errorMessage:options.errorMessage,
+							validMessage:options.validMessage,
+							appendResultTo:options.appendResultTo });
 
 		if(options.event) {
 			// if this field specified a custom event watch type, use it
+			obj.stopObserving(options.event);
 			obj.observe(options.event, this.validateField.bindAsEventListener(this));
 		} else if(this.whenToValidate != 'submit') {
 			// if we're not validating on submit, then observe whichever other event type was specified
+			obj.stopObserving(this.whenToValidate);
 			obj.observe(this.whenToValidate, this.validateField.bindAsEventListener(this));
 		}
 	},
@@ -121,33 +124,49 @@ Validator.prototype = {
 	validateField:function(e) {
 		// is this being called as the result of an event being fired, or did we call it directly?
 		var obj = e.element ? e.element() : $(e);
-		var field = this.fields.find(function(field) {
+		var fields = this.fields.select(function(field) {
 			return obj == field.obj ? true : false;
 		});
-		if(field) {
-			if(field.method($F(field.obj))) {
-				this.setFieldAsValid(field);
-			} else {
-				this.setFieldAsError(field);
-			}
+
+		if(fields) {
+			this.resetField(fields[0]);
+			// for each field that matched, first check to see if it already has an error and if not, then validate
+			fields.each(function(field) {
+				if(!this.fieldHasErrors(field)) {
+					if(field.method($F(field.obj))) {
+						this.setFieldAsValid(field);
+					} else {
+						this.setFieldAsError(field);
+					}
+				}
+			}.bind(this));
 		}
+	},
+
+	fieldHasErrors:function(field) {
+		return this.errors.find(function(error) {
+			return error.obj == field.obj ? true : false;
+		});
 	},
 	
 	// add an error
 	setFieldAsError:function(field) {
+		// remove any existing valids on this field
 		this.resetField(field);
 		this.errors.push(field);
 		field.obj.addClassName(this.errorClass);
-		var output = '<div id="' + field.obj.id + '_result" class="result error"><img src="' + this.errorIcon + '" alt="" /> ' + field.error_message + '</div>';
-		field.obj.insert({after:output});
+		var output = '<div id="' + field.obj.id + '_result" class="result error"><img src="' + this.errorIcon + '" alt="" /> ' + field.errorMessage + '</div>';
+		field.appendResultTo.insert({after:output});
 	},
 
 	setFieldAsValid:function(field) {
-		this.resetField(field);
 		this.valid.push(field);
 		field.obj.addClassName(this.validClass);
-		var output = '<div id="' + field.obj.id + '_result" class="result valid"><img src="' + this.validIcon + '" alt="" /> ' + field.valid_message + '</div>'
-		field.obj.insert({after:output});
+		var result_obj = $(field.obj.id+'_result');
+		if(!result_obj) {
+			var output = '<div id="' + field.obj.id + '_result" class="result valid"><img src="' + this.validIcon + '" alt="" /> ' + field.validMessage + '</div>'
+			field.appendResultTo.insert({after:output});
+		}
 	},
 	
 	hasErrors:function() {
@@ -169,6 +188,18 @@ Validator.prototype = {
 		if(result_obj) {
 			result_obj.remove();
 		}
+		// remove field from the errors array
+		this.errors.each(function(error) {
+			if (field.obj == error.obj) {
+				this.errors = this.errors.without(error);
+			}
+		}.bind(this));
+		// remove field from the valid array
+		this.valid.each(function(valid) {
+			if (field.obj == valid.obj) {
+				this.valid = this.valid.without(valid);
+			}
+		}.bind(this));
 	},
 	
 	// a nice formatted <div> that contains the errors in english
@@ -178,7 +209,7 @@ Validator.prototype = {
 		var output = '<h2>The form could not be submitted because of the following errors:</h2>';
 		output += '<ul>';
 		this.errors.each(function(error) {
-			output += '<li>' + error.error_message + '</li>';
+			output += '<li>' + error.errorMessage + '</li>';
 		});
 		output += '</ul>';
 		obj.update(output);
