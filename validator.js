@@ -51,13 +51,13 @@ Validator.prototype = {
 	// initialize the validator with the form that this validates for
 	initialize:function(id, options) {
 		this.form_obj = $(id);
-		options = options ? options : {};
+		options = options || {};
 
-		options.event ? this.whenToValidate = options.event : null;
-		options.errorClass ? this.errorClass = options.errorClass : null;
-		options.validClass ? this.errorClass = options.validClass : null;
-		options.errorIcon ? this.errorIcon = options.errorIcon : null;
-		options.validIcon ? this.validIcon = options.validIcon : null;
+		this.whenToValidate = options.event || this.whenToValidate;
+		this.errorClass = options.errorClass || this.errorClass;
+		this.validClass = options.validClass || this.validClass;
+		this.errorIcon = options.errorIcon || this.errorIcon;
+		this.validIcon = options.validIcon || this.validIcon;
 
 		// if we're going to validate on submit, add an event handler to the form
 		if(this.whenToValidate == 'submit') {
@@ -90,9 +90,9 @@ Validator.prototype = {
 				options.errorMessage = this.basicValidations[built_in_name].errorMessage;
 			}
 		}
-		options.errorMessage = options.errorMessage ? options.errorMessage : this.defaultErrorMessage;		// if no errorMessage was passed in, set the default one
-		options.validMessage = options.validMessage ? options.validMessage : this.defaultValidMessage;		// if no validMessage was passed in, set the default one
-		options.appendResultTo = options.appendResultTo ? $(options.appendResultTo) : obj;						// should we append the result to any field other than the default?
+		options.errorMessage = options.errorMessage || this.defaultErrorMessage;		// if no errorMessage was passed in, set the default one
+		options.validMessage = options.validMessage || this.defaultValidMessage;		// if no validMessage was passed in, set the default one
+		options.appendResultTo = $(options.appendResultTo) || obj;						// should we append the result to any field other than the default?
 
 		this.fields.push({	obj:obj,
 							method:func,
