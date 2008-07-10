@@ -26,8 +26,13 @@
 			margin: 1em 0 0;
 			font-weight: bold;
 			}
+			
+			div.group label {
+				font-weight: normal;
+				display: inline;
+				}
 
-		input, select {
+		input[type="text"], select {
 			display: inline;
 			width: 160px;
 			}
@@ -66,6 +71,7 @@
 		div.example {
 			clear: left;
 			}
+			
 	</style>
 
 	<script type="text/javascript" src="../lib/prototype.js"></script>
@@ -98,14 +104,23 @@
 		<input type="text" name="phone" id="phone" value="" />
 		<div id="phone_example" class="example">Your daytime phone number</div>
 
-		<label for="gender" id="gender_label">Gender</label>
-		<select id="gender" name="gender">
+		<label>Gender</label>
+		<div class="group">
+			<label for="gender_male">Male</label>
+			<input type="radio" name="gender" id="gender_male" value="male" />
+			<label for="gender_female">Female</label>
+			<input type="radio" name="gender" id="gender_female" value="female" />
+		</div>
+
+		<label for="food" id="food_label">Favorite Food</label>
+		<select id="food" name="food">
 			<option value="">Select...</option>
 			<option value=""></option>
-			<option value="male">Boy</option>
-			<option value="female">Girl</option>
+			<option value="apples">Apples</option>
+			<option value="pears">Pears</option>
+			<option value="strawberries">Strawberries</option>
 		</select>
-		<div id="gender_example" class="example"></div>
+		<div id="food_example" class="example"></div>
 	</fieldset>
 	
 	<input type="submit" value="Submit" id="commit" />
@@ -114,23 +129,25 @@
 
 <script type="text/javascript">
 	var v = new Validator('form1', { event:'blur', errorIcon:'images/cross.png', validIcon:'images/accept.png', validateOnLoad:true });
-	v.addField(	'first_name',
-				'notBlank',
-				{ error_message:'Please enter your first name',
-				  valid_message:'Good job!' });
-	v.addField(	'last_name',
-				'notBlank');
-	v.addField( 'zip',
-				'isNumeric' );
-	v.addField(	'email',
-				'isEmail');
-	v.addField(	'phone',
-				function(v) { return v.match(/\d{3}-\d{3}-\d{4}/) ? true : false },
-				{ error_message:'Please enter your phone number in the format 123-123-1234' }),
-	v.addField(	'gender',
-				'notBlank',
-				{ error_message:'Please select a gender',
-				  event:'change' });
+	
+	// notBlank, with and without custom messages
+	v.addField(	'first_name', 'notBlank', { error_message:'Please enter your first name', valid_message:'Good job!' });
+	v.addField(	'last_name', 'notBlank');
+	
+	// isNumeric
+	v.addField( 'zip', 'isNumeric' );
+	
+	// isEmail
+	v.addField(	'email', 'isEmail');
+	
+	// custom function
+	v.addField(	'phone', function(v) { return v.match(/\d{3}-\d{3}-\d{4}/) ? true : false }, { error_message:'Please enter your phone number in the format 123-123-1234' }),
+	
+	// custom event
+	v.addField(	'food', 'notBlank', { error_message:'Please select a favorite food', event:'change' });
+	
+	// radio group
+	v.addRadioGroup('gender', { error_message:'Please select a gender' });
 </script>
 
 </body>

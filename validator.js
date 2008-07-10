@@ -1,8 +1,6 @@
 /*
-
-	TODO: Option in initialize to set default error message
  	TODO: Option to validate entire form when the page loads
-	
+ 	TODO: When validating radio groups, you'll get a valid check when you change your answer, one for every field in the group
 */
 
 var Validator = Class.create();
@@ -109,6 +107,38 @@ Validator.prototype = {
 			obj.stopObserving(this.whenToValidate);
 			obj.observe(this.whenToValidate, this.validateField.bindAsEventListener(this));
 		}
+	},
+	
+	addRadioGroup:function(id,options) {
+		var radioElements = $A(document.getElementsByName(id));
+		
+		if(radioElements) {
+		
+			// if there were no options passed in, create an empty object
+			options = options ? options : {};
+			
+			options.event = 'change';														// radio groups will always be validated when something changes
+			options.errorMessage = options.errorMessage || 'Please choose an option';		// if no errorMessage was passed in, set the default one
+			options.validMessage = options.validMessage || this.defaultValidMessage;		// if no validMessage was passed in, set the default one
+			options.appendResultTo = $(options.appendResultTo) || radioElements[radioElements.length-1];	// if no custom append obj is given, append to the last radio input
+			
+			// sort of cheat the validations and basically go through all the radio elements and see if any of them are checked
+			var func = function(v) { 
+				return radioElements.find(function(obj) { 
+					return obj.checked ? true : false 
+				});
+			};
+		
+			radioElements.each(function(obj) {
+				this.addField(obj,func,options);
+			}.bind(this));
+		
+		}
+		
+	},
+	
+	addCheckboxGroup:function(id,options) {
+		this.addRadioGroup(id,options);
 	},
 	
 	// validate all the fields in the form
