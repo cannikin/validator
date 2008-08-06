@@ -38,7 +38,7 @@ Validator.prototype = {
 	
 	// some default fields that you can get by just naming them in your addField() call
 	basicValidations:{
-		'notBlank':{	'method':function(v) { return v=='' ? false : true }, 
+		'notBlank':{	'method':function(v) { return v.strip() == '' ? false : true }, 
 						'errorMessage':'This field cannot be blank'},
 		'isNumeric':{	'method':function(v) { return parseInt(v) == v ? true : false }, 
 						'errorMessage':'This field must be a number'},
@@ -153,7 +153,7 @@ Validator.prototype = {
 	// validate a specific field
 	validateField:function(e) {
 		// is this being called as the result of an event being fired, or did we call it directly?
-		var obj = e.element ? e.element() : $(e);
+		var obj = Event.element(e) ? Event.element(e) : $(e);
 		var fields = this.fields.select(function(field) {
 			return obj == field.obj ? true : false;
 		});
@@ -180,7 +180,7 @@ Validator.prototype = {
 	},
 	
 	// add an error
-	setFieldAsError:function(field) {
+	setFieldAsError:function(field) {	
 		// remove any existing valids on this field
 		this.resetField(field);
 		this.errors.push(field);
